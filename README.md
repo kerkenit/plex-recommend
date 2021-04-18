@@ -4,7 +4,10 @@ Plex Recommend is a python script that generates recommendation playlist based o
 
 ## Requirements
 * Python 3.6 (Only tested on Python 3.6. Previous version may work)
-  
+```
+pip install wheel setuptools
+```
+
 ## Usage
 1. Install dependencies (Recommend using virtualenv).
 ```
@@ -19,11 +22,17 @@ pip install -r requirements.txt
 A. It based on what the user have watched to calcuate his preferences and find the unwatch series / movies match most.
 
 #### Q. How is it different from Plex's "Related"
-A. Plex's "Related" heavily flavor actors over gernes which is stupid in my opinion. 
+A. Plex's "Related" heavily flavor actors over gernes which is stupid in my opinion.
 How does an action movie related to a romance movie just because they have some common actors?
 
 #### Q. How to adjust the parameters?
 A. Read the code. the calculation is not that difficult.
+
+#### Q. Where can I found the PLEX_URL
+A. If you using your server in the Plex cloud you can leave it empty.
+
+#### Q. Where can I found the PLEX_TOKEN
+A. Please checkout https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/
 
 ## Known Issues
 #### Generate playlist for **ALL** libraries.
