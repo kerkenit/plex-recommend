@@ -202,6 +202,13 @@ def analysis_show(section):
         except:
             pass
 
+        if hasattr(show, 'contentRating'):
+            audience = get_audience_name(show.contentRating)
+            if not audience in audience_score:
+                audience_score[audience] = show_multiplier * show_multiplier
+            else:
+                audience_score[audience] += show_multiplier * show_multiplier
+
         for index, genre in enumerate(show.genres):
             genre_score[genre.tag] = calculate_range_score(
                 index, GENRE_RANGE, in_range_diff=False, base_score=20, out_range_score=1) * show_multiplier
@@ -261,6 +268,20 @@ def filter_show(section):
         except:
             pass
 
+        if hasattr(show, 'contentRating'):
+            audience = get_audience_name(show.contentRating)
+            if audience in audience_score:
+                show_score[show] += audience_score[audience]
+
+        try:
+            for index, collection in enumerate(collections_score):
+                for a in show.collections:
+                    if str(a).find(collection) != -1:
+                        show_score[show] += collections_score.get(
+                            collection, 0)
+        except:
+            pass
+
         show_score[show] *= show_multiplier
     recommend = sorted(show_score.items(), key=operator.itemgetter(1), reverse=True)[:PLAYLIST_SIZE]
     return [r[0] for r in recommend]
@@ -277,6 +298,44 @@ def calculate_range_score(position, in_range, in_range_diff=True, in_range_diff_
         return base_score + (in_range - position) * in_range_diff_multiplier
     else:
         return base_score + in_range
+
+
+def get_audience_name(rating):
+    if rating is not None:
+        rating = str(rating).upper()
+    else:
+        rating = "UNRATED"
+
+    rating = rating.replace("NONE", "UNRATED")
+    rating = rating.replace("NL/NR", "UNRATED")
+    rating = rating.replace("NL/AL", "ALL")
+    rating = rating.replace("NOT RATED", "UNRATED")
+    rating = rating.replace("TV-PG", "13")
+    rating = rating.replace("PG-13", "13")
+    rating = rating.replace("TV-G", "13")
+    rating = rating.replace("TV-MA", "17")
+    rating = rating.replace("NL/MG6", "6")
+    rating = rating.replace("NL/", "")
+    rating = rating.replace("TV-", "")
+    rating = rating.replace("PG-", "")
+    rating = rating.replace("PG", "13")
+    rating = rating.replace("12-12", "12")
+
+    rating = rating.replace("UNRATED", "12")
+    rating = rating.replace("NR", "UNRATED")
+
+    rating = rating.replace("UNRATED", "12")
+    rating = rating.replace("G", "ALL")
+    rating = rating.replace("R", "18")
+    rating = rating.replace("Y", "6")
+
+    rating = rating.replace("ALL", "6")
+    rating = rating.replace("AL", "6")
+    rating = rating.replace("13", "12")
+    rating = rating.replace("14", "12")
+    rating = rating.replace("17", "18")
+
+    return rating
 
 
 if __name__ == "__main__":
