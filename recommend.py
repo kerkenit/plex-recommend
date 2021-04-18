@@ -161,7 +161,8 @@ def analysis(plex):
 
 def analysis_show(section):
     shows = section.all()
-    watched_shows = [s for s in shows if s.isWatched or s.viewCount > 0 or (hasattr(s, 'userRating') and s.userRating is not None and s.userRating > 0)]
+    watched_shows = [s for s in shows if s.isWatched or s.viewCount > 0 or (
+        hasattr(s, 'userRating') and s.userRating is not None and s.userRating > 0)]
 
     for show in watched_shows:
         try:
