@@ -32,6 +32,11 @@ ap.add_argument("--name", required=False, type=str, default='"Recommend for"',
                 metavar='Default: "Recommend for"', help="Playlist name prefix")
 ap.add_argument('--exclude_section', action='append', metavar="Home video's, Music Video's",
                 help="Exclude a section from your library. Can be added multiple times")
+
+ap.add_argument('--exclude_collection', action='append', metavar="Home video's, Music Video's",
+                help="Exclude a collection from your library. Can be added multiple times")
+ap.add_argument('--include_collection', action='append', metavar="Home video's, Music Video's",
+                help="Include a collection from your library. Can be added multiple times. (Not Strict)")
 args = vars(ap.parse_args())
 
 #Plex Parameters
@@ -56,6 +61,23 @@ writers_score = {}
 directors_score = {}
 countries_score = {}
 roles_score = {}
+audiance_score = {}
+collections_score = {}
+
+if args['exclude_collection'] is not None:
+    for collection in args['exclude_collection']:
+        if not collection in collections_score:
+            collections_score[collection] = float(-25)
+        else:
+            collections_score[collection] += float(-25)
+
+if args['include_collection'] is not None:
+    for collection in args['include_collection']:
+        if not collection in collections_score:
+            collections_score[collection] = float(25)
+        else:
+            collections_score[collection] += float(25)
+
 
 def fetch_plex_api(path="", method="GET", plextv=False, **kwargs):
     url = "https://plex.tv" if plextv else PLEX_URL.rstrip("/")
