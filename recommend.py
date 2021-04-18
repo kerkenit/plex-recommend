@@ -9,18 +9,29 @@ from plexapi.server import PlexServer
 from plexapi.video import Show
 
 # Construct the argument parser
-ap = argparse.ArgumentParser(description='Creates a playlist of Plex Recommendations', allow_abbrev=False)
+ap = argparse.ArgumentParser(
+    description='Creates a playlist of Plex Recommendations', allow_abbrev=False)
+ap.add_argument('--version', action='version', version='%(prog)s 2.0')
 
 # Add the arguments to the parser
-ap.add_argument("--plextoken", required=True, help="Plex token. See https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/ how to get the token")
-ap.add_argument("--plexurl", required=False, help="Plex URL. Leave empty to use localhost")
-ap.add_argument("--cast", required=False, type=int, default=5, metavar='{5-10}', choices=range(5, 11), help="Range persons of the cast. Default value 5")
-ap.add_argument("--genre", required=False, type=int, default=3, metavar='{1-10}', choices=range(1, 11), help="Range of genres. Default value 3")
-ap.add_argument("--rating", required=False, type=float, default=2, metavar='{0-5}', choices=range(0, 6), help="Default rating when empty. Default value: 2")
-ap.add_argument("--muliplier", required=False, type=bool, default=True, metavar='True', help="Mulitplier Posible values: True or False")
-ap.add_argument("--size", required=False, type=int, default=10, metavar='{10,25,50,100}', choices=[10, 25, 50, 100], help="Length of playlist, Default 10")
-ap.add_argument("--name", required=False, type=str, default='"Recommend for"', metavar='Default: "Recommend for"', help="Playlist name prefix")
-ap.add_argument('--exclude_section', action='append', metavar="Home video's, Music Video's", help="Exclude a section from your library. Can be added muliple times")
+ap.add_argument("--plextoken", required=True,
+                help="Plex token. See https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/ how to get the token")
+ap.add_argument("--plexurl", required=False,
+                help="Plex URL. Leave empty to use localhost")
+ap.add_argument("--cast", required=False, type=int, default=5,
+                metavar='{5-10}', choices=range(5, 11), help="Range persons of the cast. Default value 5")
+ap.add_argument("--genre", required=False, type=int, default=3,
+                metavar='{1-10}', choices=range(1, 11), help="Range of genres. Default value 3")
+ap.add_argument("--rating", required=False, type=float, default=2,
+                metavar='{0-5}', choices=range(0, 6), help="Default rating when empty. Default value: 2")
+ap.add_argument("--muliplier", required=False, type=bool, default=True,
+                metavar='True', help="Mulitplier Posible values: True or False")
+ap.add_argument("--size", required=False, type=int, default=10,
+                metavar='{10,25,50,100}', choices=[10, 25, 50, 100], help="Length of playlist, Default 10")
+ap.add_argument("--name", required=False, type=str, default='"Recommend for"',
+                metavar='Default: "Recommend for"', help="Playlist name prefix")
+ap.add_argument('--exclude_section', action='append', metavar="Home video's, Music Video's",
+                help="Exclude a section from your library. Can be added multiple times")
 args = vars(ap.parse_args())
 
 #Plex Parameters
@@ -55,15 +66,20 @@ def fetch_plex_api(path="", method="GET", plextv=False, **kwargs):
 
     try:
         if method.upper() == "GET":
-            r = requests.get(url + path, headers=headers, params=params, verify=False)
+            r = requests.get(url + path, headers=headers,
+                             params=params, verify=False)
         elif method.upper() == "POST":
-            r = requests.post(url + path, headers=headers, params=params, verify=False)
+            r = requests.post(url + path, headers=headers,
+                              params=params, verify=False)
         elif method.upper() == "PUT":
-            r = requests.put(url + path, headers=headers, params=params, verify=False)
+            r = requests.put(url + path, headers=headers,
+                             params=params, verify=False)
         elif method.upper() == "DELETE":
-            r = requests.delete(url + path, headers=headers, params=params, verify=False)
+            r = requests.delete(url + path, headers=headers,
+                                params=params, verify=False)
         else:
-            print("Invalid request method provided: {method}".format(method=method))
+            print("Invalid request method provided: {method}".format(
+                method=method))
             return
 
         if r and len(r.content):
@@ -82,9 +98,12 @@ def fetch_plex_api(path="", method="GET", plextv=False, **kwargs):
 
 def get_user_tokens(server_id):
     api_users = fetch_plex_api("/api/users", plextv=True)
-    api_shared_servers = fetch_plex_api("/api/servers/{server_id}/shared_servers".format(server_id=server_id), plextv=True)
-    user_ids = {user["@id"]: user.get("@username", user.get("@title")) for user in api_users["MediaContainer"]["User"]}
-    users = {user_ids[user["@userID"]]: user["@accessToken"] for user in api_shared_servers["MediaContainer"]["SharedServer"]}
+    api_shared_servers = fetch_plex_api(
+        "/api/servers/{server_id}/shared_servers".format(server_id=server_id), plextv=True)
+    user_ids = {user["@id"]: user.get("@username", user.get("@title"))
+                for user in api_users["MediaContainer"]["User"]}
+    users = {user_ids[user["@userID"]]: user["@accessToken"]
+             for user in api_shared_servers["MediaContainer"]["SharedServer"]}
     return users
 
 
@@ -121,8 +140,10 @@ def main():
                except:
                   pass
 
+
 def get_first_episode(show, season_num=1):
     return show.episode(season=season_num, episode=1) if isinstance(show, Show) else show
+
 
 def analysis(plex):
     result = {}
@@ -150,38 +171,45 @@ def analysis_show(section):
 
         show_multiplier = rating / 10 if SHOW_MULTIPLIER else 1
         for index, cast in enumerate(show.actors):
-            cast_score[cast.tag] = calculate_range_score(index, CAST_RANGE) * show_multiplier
+            cast_score[cast.tag] = calculate_range_score(
+                index, CAST_RANGE) * show_multiplier
 
         try:
             for index, writer in enumerate(show.writers):
-                writers_score[writer] = calculate_range_score(index, CAST_RANGE) * (show_multiplier / 3)
+                writers_score[writer] = calculate_range_score(
+                    index, CAST_RANGE) * (show_multiplier / 3)
         except:
             pass
 
         try:
             for index, director in enumerate(show.directors):
-                directors_score[director] = calculate_range_score(index, 3, in_range_diff=False, base_score=15, out_range_score=3) * (show_multiplier / 2)
+                directors_score[director] = calculate_range_score(
+                    index, 3, in_range_diff=False, base_score=15, out_range_score=3) * (show_multiplier / 2)
         except:
             pass
 
         try:
             for index, country in enumerate(show.countries):
-                countries_score[country] = calculate_range_score(index, 3, in_range_diff=True, base_score=5, out_range_score=1) * (show_multiplier / 2)
+                countries_score[country] = calculate_range_score(
+                    index, 3, in_range_diff=True, base_score=5, out_range_score=1) * (show_multiplier / 2)
         except:
             pass
 
         try:
             for index, role in enumerate(show.roles):
-                roles_score[country] = calculate_range_score(index, CAST_RANGE, in_range_diff=True, base_score=10, out_range_score=1) * show_multiplier
+                roles_score[country] = calculate_range_score(
+                    index, CAST_RANGE, in_range_diff=True, base_score=10, out_range_score=1) * show_multiplier
         except:
             pass
 
         for index, genre in enumerate(show.genres):
-            genre_score[genre.tag] = calculate_range_score(index, GENRE_RANGE, in_range_diff=False, base_score=20, out_range_score=1) * show_multiplier
+            genre_score[genre.tag] = calculate_range_score(
+                index, GENRE_RANGE, in_range_diff=False, base_score=20, out_range_score=1) * show_multiplier
 
         try:
             for index, studio in enumerate(show.studio):
-                studio_score[studio] = calculate_range_score(index, 2, in_range_diff=True, base_score=5, out_range_score=1) * (show_multiplier / 3)
+                studio_score[studio] = calculate_range_score(
+                    index, 2, in_range_diff=True, base_score=5, out_range_score=1) * (show_multiplier / 3)
         except:
             pass
 
