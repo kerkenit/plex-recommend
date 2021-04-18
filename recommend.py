@@ -204,11 +204,11 @@ def analysis_show(section):
             pass
 
         if hasattr(show, 'contentRating'):
-            audience = get_audience_name(show.contentRating)
-            if not audience in audience_score:
-                audience_score[audience] = show_multiplier * show_multiplier
+            audiance = get_audiance_name(show.contentRating)
+            if not audiance in audiance_score:
+                audiance_score[audiance] = show_multiplier * show_multiplier
             else:
-                audience_score[audience] += show_multiplier * show_multiplier
+                audiance_score[audiance] += show_multiplier * show_multiplier
 
         for index, genre in enumerate(show.genres):
             genre_score[genre.tag] = calculate_range_score(
@@ -227,10 +227,10 @@ def filter_show(section):
 
     show_score = {}
     for show in unwatch_shows:
-        try:
-            rating = show.rating if show.rating is not None else show.userRating if show.userRating is not None else SHOW_DEFAULT_RATING
-        except:
-            rating = show.rating if show.rating is not None else SHOW_DEFAULT_RATING
+        #try:
+        #    rating = show.rating if show.rating is not None else show.userRating if show.userRating is not None else SHOW_DEFAULT_RATING
+        #except:
+        rating = show.rating if show.rating is not None else SHOW_DEFAULT_RATING
 
         show_multiplier = rating / 10 if SHOW_MULTIPLIER else 1
         show_score[show] = 0
@@ -270,9 +270,9 @@ def filter_show(section):
             pass
 
         if hasattr(show, 'contentRating'):
-            audience = get_audience_name(show.contentRating)
-            if audience in audience_score:
-                show_score[show] += audience_score[audience]
+            audiance = get_audiance_name(show.contentRating)
+            if audiance in audiance_score:
+                show_score[show] += audiance_score[audiance]
 
         try:
             for index, collection in enumerate(collections_score):
@@ -301,7 +301,7 @@ def calculate_range_score(position, in_range, in_range_diff=True, in_range_diff_
         return base_score + in_range
 
 
-def get_audience_name(rating):
+def get_audiance_name(rating):
     if rating is not None:
         rating = str(rating).upper()
     else:
