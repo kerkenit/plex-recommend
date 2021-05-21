@@ -33,10 +33,12 @@ ap.add_argument("--name", required=False, type=str, default='"Recommend for"',
 ap.add_argument('--exclude_section', action='append', metavar="Home video's, Music Video's",
                 help="Exclude a section from your library. Can be added multiple times")
 
-ap.add_argument('--exclude_collection', action='append', metavar="Home video's, Music Video's",
+ap.add_argument('--exclude_collection', action='append', metavar="Christmas, Holiday",
                 help="Exclude a collection from your library. Can be added multiple times")
-ap.add_argument('--include_collection', action='append', metavar="Home video's, Music Video's",
+ap.add_argument('--include_collection', action='append', metavar="James Bond",
                 help="Include a collection from your library. Can be added multiple times. (Not Strict)")
+ap.add_argument('--exclude_genre', action='append', metavar="Horror",
+                help="Exclude a genre from your library. Can be added multiple times")
 args = vars(ap.parse_args())
 
 #Plex Parameters
@@ -63,6 +65,13 @@ countries_score = {}
 roles_score = {}
 audiance_score = {}
 collections_score = {}
+
+if args['exclude_genre'] is not None:
+    for genre in args['exclude_genre']:
+        if not genre in collections_score:
+            genre_score[genre] = float(-500)
+        else:
+            genre_score[genre] += float(-500)
 
 if args['exclude_collection'] is not None:
     for collection in args['exclude_collection']:
@@ -192,54 +201,91 @@ def analysis_show(section):
         except:
             rating = show.rating if show.rating is not None else SHOW_DEFAULT_RATING
 
+
+        iAudiance = 18
+        if hasattr(show, 'contentRating'):
+            audiance = get_audiance_name(show.contentRating)
+
+            try:
+                iAudiance = int(audiance)
+            except:
+                iAudiance = 18
+            rating = rating * (18 / iAudiance)
+
+            if not audiance in audiance_score:
+                audiance_score[audiance] = rating
+            else:
+                audiance_score[audiance] += rating
+
         show_multiplier = rating / 10 if SHOW_MULTIPLIER else 1
         for index, cast in enumerate(show.actors):
-            cast_score[cast.tag] = calculate_range_score(
-                index, CAST_RANGE) * show_multiplier
+            if not cast.tag in cast_score:
+                cast_score[cast.tag] = calculate_range_score(
+                    index, CAST_RANGE) * show_multiplier
+            else:
+                cast_score[cast.tag] += calculate_range_score(
+                    index, CAST_RANGE) * show_multiplier
 
         try:
             for index, writer in enumerate(show.writers):
-                writers_score[writer] = calculate_range_score(
-                    index, CAST_RANGE) * (show_multiplier / 3)
+                if not writer in writers_score:
+                    writers_score[writer] = calculate_range_score(
+                        index, CAST_RANGE) * show_multiplier
+                else:
+                    writers_score[writer] += calculate_range_score(
+                        index, CAST_RANGE) * show_multiplier
         except:
             pass
 
         try:
             for index, director in enumerate(show.directors):
-                directors_score[director] = calculate_range_score(
-                    index, 3, in_range_diff=False, base_score=15, out_range_score=3) * (show_multiplier / 2)
+                if not director in directors_score:
+                    directors_score[director] = calculate_range_score(
+                        index, 3, in_range_diff=False, base_score=10, out_range_score=3) * show_multiplier
+                else:
+                    directors_score[director] += calculate_range_score(
+                        index, 3, in_range_diff=False, base_score=10, out_range_score=3) * show_multiplier
+
         except:
             pass
 
         try:
             for index, country in enumerate(show.countries):
-                countries_score[country] = calculate_range_score(
-                    index, 3, in_range_diff=True, base_score=5, out_range_score=1) * (show_multiplier / 2)
+                if not country in countries_score:
+                    countries_score[country] = calculate_range_score(
+                        index, 3, in_range_diff=True, base_score=2, out_range_score=1) * show_multiplier
+                else:
+                    countries_score[country] += calculate_range_score(
+                        index, 3, in_range_diff=True, base_score=2, out_range_score=1) * show_multiplier
+
         except:
             pass
 
         try:
             for index, role in enumerate(show.roles):
-                roles_score[country] = calculate_range_score(
-                    index, CAST_RANGE, in_range_diff=True, base_score=10, out_range_score=1) * show_multiplier
+                if not role in roles_score:
+                    roles_score[role] = calculate_range_score(
+                        index, CAST_RANGE, in_range_diff=True, base_score=5, out_range_score=1) * show_multiplier
+                else:
+                    roles_score[role] += calculate_range_score(
+                        index, CAST_RANGE, in_range_diff=True, base_score=5, out_range_score=1) * show_multiplier
         except:
             pass
 
-        if hasattr(show, 'contentRating'):
-            audiance = get_audiance_name(show.contentRating)
-            if not audiance in audiance_score:
-                audiance_score[audiance] = show_multiplier * show_multiplier
-            else:
-                audiance_score[audiance] += show_multiplier * show_multiplier
+
 
         for index, genre in enumerate(show.genres):
-            genre_score[genre.tag] = calculate_range_score(
-                index, GENRE_RANGE, in_range_diff=False, base_score=20, out_range_score=1) * show_multiplier
+            if not genre.tag in genre_score:
+                genre_score[genre.tag] = calculate_range_score(
+                    index, GENRE_RANGE, in_range_diff=False, base_score=20, out_range_score=1) * show_multiplier
+            else:
+                genre_score[genre.tag] += calculate_range_score(
+                    index, GENRE_RANGE, in_range_diff=False, base_score=20, out_range_score=1) * show_multiplier
 
         try:
             for index, studio in enumerate(show.studio):
                 studio_score[studio] = calculate_range_score(
-                    index, 2, in_range_diff=True, base_score=5, out_range_score=1) * (show_multiplier / 3)
+                    index, 2, in_range_diff=True, base_score=3, out_range_score=1) * show_multiplier
         except:
             pass
 
@@ -291,10 +337,20 @@ def filter_show(section):
         except:
             pass
 
+
         if hasattr(show, 'contentRating'):
             audiance = get_audiance_name(show.contentRating)
+
+
             if audiance in audiance_score:
-                show_score[show] += audiance_score[audiance]
+                iAudiance = 18
+                try:
+                    iAudiance = int(audiance)
+                except:
+                    pass
+                if iAudiance < 18:
+                    show_score[show] += audiance_score[audiance]
+
 
         try:
             for index, collection in enumerate(collections_score):
@@ -352,11 +408,21 @@ def get_audiance_name(rating):
     rating = rating.replace("R", "18")
     rating = rating.replace("Y", "6")
 
-    rating = rating.replace("ALL", "6")
-    rating = rating.replace("AL", "6")
+    rating = rating.replace("ALL", "2")
+    rating = rating.replace("AL", "2")
+    rating = rating.replace("3", "2")
+    rating = rating.replace("4", "2")
+    rating = rating.replace("5", "2")
+    rating = rating.replace("7", "6")
+    rating = rating.replace("8", "6")
+    rating = rating.replace("9", "9")
+    rating = rating.replace("10", "9")
+    rating = rating.replace("11", "9")
     rating = rating.replace("13", "12")
     rating = rating.replace("14", "12")
+    rating = rating.replace("15", "12")
     rating = rating.replace("17", "18")
+    rating = rating.replace("16", "18")
 
     return rating
 
