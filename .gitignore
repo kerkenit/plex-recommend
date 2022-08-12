@@ -107,3 +107,4 @@ venv.bak/
 env/
 recommend.sh
 .vscode/settings.json
+.DS_Store
