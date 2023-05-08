@@ -342,7 +342,7 @@ def filter_show(section):
                 except:
                     pass
                 if iAudiance < 18:
-                    show_score[show] += audiance_score[audiance]
+                    show_score[show] += (18 - audiance_score[audiance])
 
 
         try:
