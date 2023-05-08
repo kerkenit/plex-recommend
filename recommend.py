@@ -1,5 +1,7 @@
 import operator
 import sys
+import time
+import locale
 import argparse
 import requests
 import urllib3
@@ -40,6 +42,13 @@ ap.add_argument('--include_collection', action='append', metavar="James Bond",
 ap.add_argument('--exclude_genre', action='append', metavar="Horror",
                 help="Exclude a genre from your library. Can be added multiple times")
 args = vars(ap.parse_args())
+
+try:
+    locale.setlocale(locale.LC_TIME, str(
+        locale.getdefaultlocale()[0]) + ".utf8")
+except:
+    locale.setlocale(locale.LC_TIME, "en_US.utf8")
+    pass
 
 #Plex Parameters
 PLEX_URL = args['plexurl']
@@ -109,8 +118,7 @@ def fetch_plex_api(path="", method="GET", plextv=False, **kwargs):
             r = requests.delete(url + path, headers=headers,
                                 params=params, verify=False)
         else:
-            print("Invalid request method provided: {method}".format(
-                method=method))
+            print("Invalid request method provided: {method}".format(method=method))
             return
 
         if r and len(r.content):
@@ -149,13 +157,13 @@ def main():
         for playlist in plex.playlists():
             if playlist.title.startswith(PLAYLIST_NAME + " "):
                 try:
-                   playlist.delete()
+                    playlist.delete()
                 except:
-                   pass
+                    pass
 
         for section, shows in result.items():
             if section in EXCLUDE_SECTIONS:
-               continue
+                continue
 
             playlist_title = PLAYLIST_NAME + " " + section
             media = []
@@ -166,10 +174,11 @@ def main():
                     pass
 
             if len(media) > 0:
-               try:
-                  plex.createPlaylist(playlist_title, media)
-               except:
-                  pass
+                try:
+                    playlist = plex.createPlaylist(playlist_title, media)
+                    playlist.edit(playlist_title, time.strftime("%A %d %b %Y %H:%M:%S"))
+                except:
+                    pass
 
 
 def get_first_episode(show, season_num=1):
@@ -229,22 +238,18 @@ def analysis_show(section):
         try:
             for index, writer in enumerate(show.writers):
                 if not writer in writers_score:
-                    writers_score[writer] = calculate_range_score(
-                        index, CAST_RANGE) * show_multiplier
+                    writers_score[writer] = calculate_range_score(index, CAST_RANGE) * show_multiplier
                 else:
-                    writers_score[writer] += calculate_range_score(
-                        index, CAST_RANGE) * show_multiplier
+                    writers_score[writer] += calculate_range_score(index, CAST_RANGE) * show_multiplier
         except:
             pass
 
         try:
             for index, director in enumerate(show.directors):
                 if not director in directors_score:
-                    directors_score[director] = calculate_range_score(
-                        index, 3, in_range_diff=False, base_score=10, out_range_score=3) * show_multiplier
+                    directors_score[director] = calculate_range_score(index, 3, in_range_diff=False, base_score=10, out_range_score=3) * show_multiplier
                 else:
-                    directors_score[director] += calculate_range_score(
-                        index, 3, in_range_diff=False, base_score=10, out_range_score=3) * show_multiplier
+                    directors_score[director] += calculate_range_score(index, 3, in_range_diff=False, base_score=10, out_range_score=3) * show_multiplier
 
         except:
             pass
@@ -252,11 +257,9 @@ def analysis_show(section):
         try:
             for index, country in enumerate(show.countries):
                 if not country in countries_score:
-                    countries_score[country] = calculate_range_score(
-                        index, 3, in_range_diff=True, base_score=2, out_range_score=1) * show_multiplier
+                    countries_score[country] = calculate_range_score(index, 3, in_range_diff=True, base_score=2, out_range_score=1) * show_multiplier
                 else:
-                    countries_score[country] += calculate_range_score(
-                        index, 3, in_range_diff=True, base_score=2, out_range_score=1) * show_multiplier
+                    countries_score[country] += calculate_range_score(index, 3, in_range_diff=True, base_score=2, out_range_score=1) * show_multiplier
 
         except:
             pass
@@ -264,11 +267,9 @@ def analysis_show(section):
         try:
             for index, role in enumerate(show.roles):
                 if not role in roles_score:
-                    roles_score[role] = calculate_range_score(
-                        index, CAST_RANGE, in_range_diff=True, base_score=5, out_range_score=1) * show_multiplier
+                    roles_score[role] = calculate_range_score(index, CAST_RANGE, in_range_diff=True, base_score=5, out_range_score=1) * show_multiplier
                 else:
-                    roles_score[role] += calculate_range_score(
-                        index, CAST_RANGE, in_range_diff=True, base_score=5, out_range_score=1) * show_multiplier
+                    roles_score[role] += calculate_range_score(index, CAST_RANGE, in_range_diff=True, base_score=5, out_range_score=1) * show_multiplier
         except:
             pass
 
@@ -276,16 +277,13 @@ def analysis_show(section):
 
         for index, genre in enumerate(show.genres):
             if not genre.tag in genre_score:
-                genre_score[genre.tag] = calculate_range_score(
-                    index, GENRE_RANGE, in_range_diff=False, base_score=20, out_range_score=1) * show_multiplier
+                genre_score[genre.tag] = calculate_range_score(index, GENRE_RANGE, in_range_diff=False, base_score=20, out_range_score=1) * show_multiplier
             else:
-                genre_score[genre.tag] += calculate_range_score(
-                    index, GENRE_RANGE, in_range_diff=False, base_score=20, out_range_score=1) * show_multiplier
+                genre_score[genre.tag] += calculate_range_score(index, GENRE_RANGE, in_range_diff=False, base_score=20, out_range_score=1) * show_multiplier
 
         try:
             for index, studio in enumerate(show.studio):
-                studio_score[studio] = calculate_range_score(
-                    index, 2, in_range_diff=True, base_score=3, out_range_score=1) * show_multiplier
+                studio_score[studio] = calculate_range_score(index, 2, in_range_diff=True, base_score=3, out_range_score=1) * show_multiplier
         except:
             pass
 
@@ -356,8 +354,7 @@ def filter_show(section):
             for index, collection in enumerate(collections_score):
                 for a in show.collections:
                     if str(a).find(collection) != -1:
-                        show_score[show] += collections_score.get(
-                            collection, 0)
+                        show_score[show] += collections_score.get(collection, 0)
         except:
             pass
 
