@@ -395,6 +395,7 @@ def filter_show(section):
             print("collections_score: {err}".format(err=e))
 
         show_score[show] *= show_multiplier
+
     recommend = sorted(show_score.items(), key=operator.itemgetter(1), reverse=True)[:PLAYLIST_SIZE]
     return [r[0] for r in recommend]
 
