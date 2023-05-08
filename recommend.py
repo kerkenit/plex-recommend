@@ -222,12 +222,13 @@ def analysis_show(section):
 
         show_multiplier = rating / 10 if SHOW_MULTIPLIER else 1
         for index, cast in enumerate(show.actors):
-            if not cast.tag in cast_score:
-                cast_score[cast.tag] = calculate_range_score(
-                    index, CAST_RANGE) * show_multiplier
-            else:
-                cast_score[cast.tag] += calculate_range_score(
-                    index, CAST_RANGE) * show_multiplier
+            try:
+                if not cast.tag in cast_score:
+                    cast_score[cast.tag] = calculate_range_score(index, CAST_RANGE) * show_multiplier
+                else:
+                    cast_score[cast.tag] += calculate_range_score(index, CAST_RANGE) * show_multiplier
+            except:
+                pass
 
         try:
             for index, writer in enumerate(show.writers):
