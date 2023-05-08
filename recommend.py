@@ -194,12 +194,20 @@ def analysis(plex):
     for section in plex.library.sections():
         if not isinstance(section, ShowSection) and not isinstance(section, MovieSection):
             continue
-        analysis_show(section)
+        elif section.title in EXCLUDE_SECTIONS:
+            continue
+        else :
+            #print (section.title)
+            analysis_show(section)
 
     for section in plex.library.sections():
         if not isinstance(section, ShowSection) and not isinstance(section, MovieSection):
             continue
-        result[section.title] = filter_show(section)
+        elif section.title in EXCLUDE_SECTIONS:
+            continue
+        else :
+            #print (section.title)
+            result[section.title] = filter_show(section)
     return result
 
 
