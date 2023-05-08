@@ -243,11 +243,12 @@ def analysis_show(section):
             pass
 
         try:
-            for index, writer in enumerate(show.writers):
-                if not writer in writers_score:
-                    writers_score[writer] = calculate_range_score(index, CAST_RANGE) * show_multiplier
-                else:
-                    writers_score[writer] += calculate_range_score(index, CAST_RANGE) * show_multiplier
+             if show.writers is not None :
+                for index, writer in enumerate(show.writers):
+                    if not writer in writers_score:
+                        writers_score[writer] = calculate_range_score(index, CAST_RANGE) * show_multiplier
+                    else:
+                        writers_score[writer] += calculate_range_score(index, CAST_RANGE) * show_multiplier
         except AttributeError:
             pass
         except Exception as e:
@@ -255,11 +256,12 @@ def analysis_show(section):
             pass
 
         try:
-            for index, director in enumerate(show.directors):
-                if not director in directors_score:
-                    directors_score[director] = calculate_range_score(index, 3, in_range_diff=False, base_score=10, out_range_score=3) * show_multiplier
-                else:
-                    directors_score[director] += calculate_range_score(index, 3, in_range_diff=False, base_score=10, out_range_score=3) * show_multiplier
+             if show.directors is not None :
+                for index, director in enumerate(show.directors):
+                    if not director in directors_score:
+                        directors_score[director] = calculate_range_score(index, 3, in_range_diff=False, base_score=10, out_range_score=3) * show_multiplier
+                    else:
+                        directors_score[director] += calculate_range_score(index, 3, in_range_diff=False, base_score=10, out_range_score=3) * show_multiplier
         except AttributeError:
             pass
         except Exception as e:
@@ -267,22 +269,24 @@ def analysis_show(section):
             pass
 
         try:
-            for index, country in enumerate(show.countries):
-                if not country in countries_score:
-                    countries_score[country] = calculate_range_score(index, 3, in_range_diff=True, base_score=2, out_range_score=1) * show_multiplier
-                else:
-                    countries_score[country] += calculate_range_score(index, 3, in_range_diff=True, base_score=2, out_range_score=1) * show_multiplier
+             if show.countries is not None :
+                for index, country in enumerate(show.countries):
+                    if not country in countries_score:
+                        countries_score[country] = calculate_range_score(index, 3, in_range_diff=True, base_score=2, out_range_score=1) * show_multiplier
+                    else:
+                        countries_score[country] += calculate_range_score(index, 3, in_range_diff=True, base_score=2, out_range_score=1) * show_multiplier
         except AttributeError:
             pass
         except Exception as e:
             print("countries_score: {err}".format(err=e))
 
         try:
-            for index, role in enumerate(show.roles):
-                if not role in roles_score:
-                    roles_score[role] = calculate_range_score(index, CAST_RANGE, in_range_diff=True, base_score=5, out_range_score=1) * show_multiplier
-                else:
-                    roles_score[role] += calculate_range_score(index, CAST_RANGE, in_range_diff=True, base_score=5, out_range_score=1) * show_multiplier
+            if show.roles is not None :
+                for index, role in enumerate(show.roles):
+                    if not role in roles_score:
+                        roles_score[role] = calculate_range_score(index, CAST_RANGE, in_range_diff=True, base_score=5, out_range_score=1) * show_multiplier
+                    else:
+                        roles_score[role] += calculate_range_score(index, CAST_RANGE, in_range_diff=True, base_score=5, out_range_score=1) * show_multiplier
         except AttributeError:
             pass
         except Exception as e:
@@ -291,19 +295,21 @@ def analysis_show(section):
 
 
         try:
-            for index, genre in enumerate(show.genres):
-                if not genre.tag in genre_score:
-                    genre_score[genre.tag] = calculate_range_score(index, GENRE_RANGE, in_range_diff=False, base_score=20, out_range_score=1) * show_multiplier
-                else:
-                    genre_score[genre.tag] += calculate_range_score(index, GENRE_RANGE, in_range_diff=False, base_score=20, out_range_score=1) * show_multiplier
+             if show.genres is not None :
+                for index, genre in enumerate(show.genres):
+                    if not genre.tag in genre_score:
+                        genre_score[genre.tag] = calculate_range_score(index, GENRE_RANGE, in_range_diff=False, base_score=20, out_range_score=1) * show_multiplier
+                    else:
+                        genre_score[genre.tag] += calculate_range_score(index, GENRE_RANGE, in_range_diff=False, base_score=20, out_range_score=1) * show_multiplier
         except AttributeError:
             pass
         except Exception as e:
             print("genre_score: {err}".format(err=e))
 
         try:
-            for index, studio in enumerate(show.studio):
-                studio_score[studio] = calculate_range_score(index, 2, in_range_diff=True, base_score=3, out_range_score=1) * show_multiplier
+            if show.studio is not None :
+                for index, studio in enumerate(show.studio):
+                    studio_score[studio] = calculate_range_score(index, 2, in_range_diff=True, base_score=3, out_range_score=1) * show_multiplier
         except AttributeError:
             pass
         except Exception as e:
