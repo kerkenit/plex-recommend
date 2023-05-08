@@ -6,6 +6,7 @@ import argparse
 import requests
 import urllib3
 import xmltodict
+
 from plexapi.library import ShowSection, MovieSection
 from plexapi.server import PlexServer
 from plexapi.video import Show
@@ -42,6 +43,7 @@ ap.add_argument('--include_collection', action='append', metavar="James Bond",
 ap.add_argument('--exclude_genre', action='append', metavar="Horror",
                 help="Exclude a genre from your library. Can be added multiple times")
 args = vars(ap.parse_args())
+
 
 try:
     locale.setlocale(locale.LC_TIME, str(locale.getlocale()[0]) + ".UTF-8")
@@ -153,7 +155,8 @@ def main():
             if playlist.title.startswith(PLAYLIST_NAME + " "):
                 try:
                     playlist.delete()
-                except:
+                except Exception as e:
+                    print("Delete playlist: {err}".format(err=e))
                     pass
 
         for section, shows in result.items():
@@ -165,19 +168,25 @@ def main():
             for s in shows:
                 try:
                     media.append(get_first_episode(s))
-                except:
+                except Exception as e:
+                    print("get_first_episode: {err}".format(err=e))
                     pass
 
             if len(media) > 0:
                 try:
                     playlist = plex.createPlaylist(playlist_title, media)
                     playlist.edit(playlist_title, time.strftime("%A %d %b %Y %H:%M:%S"))
-                except:
+                except Exception as e:
+                    print("createPlaylist: {err}".format(err=e))
                     pass
 
 
 def get_first_episode(show, season_num=1):
-    return show.episode(season=season_num, episode=1) if isinstance(show, Show) else show
+    try:
+        return show.episode(season=season_num, episode=1) if isinstance(show, Show) else show
+    except Exception as e:
+        return show
+        pass
 
 
 def analysis(plex):
@@ -221,14 +230,17 @@ def analysis_show(section):
                 audiance_score[audiance] += rating
 
         show_multiplier = rating / 10 if SHOW_MULTIPLIER else 1
-        for index, cast in enumerate(show.actors):
-            try:
+        try:
+            for index, cast in enumerate(show.actors):
                 if not cast.tag in cast_score:
                     cast_score[cast.tag] = calculate_range_score(index, CAST_RANGE) * show_multiplier
                 else:
                     cast_score[cast.tag] += calculate_range_score(index, CAST_RANGE) * show_multiplier
-            except:
-                pass
+        except AttributeError:
+            pass
+        except Exception as e:
+            print("cast_score: {err}".format(err=e))
+            pass
 
         try:
             for index, writer in enumerate(show.writers):
@@ -236,7 +248,10 @@ def analysis_show(section):
                     writers_score[writer] = calculate_range_score(index, CAST_RANGE) * show_multiplier
                 else:
                     writers_score[writer] += calculate_range_score(index, CAST_RANGE) * show_multiplier
-        except:
+        except AttributeError:
+            pass
+        except Exception as e:
+            print("writers_score: {err}".format(err=e))
             pass
 
         try:
@@ -245,8 +260,10 @@ def analysis_show(section):
                     directors_score[director] = calculate_range_score(index, 3, in_range_diff=False, base_score=10, out_range_score=3) * show_multiplier
                 else:
                     directors_score[director] += calculate_range_score(index, 3, in_range_diff=False, base_score=10, out_range_score=3) * show_multiplier
-
-        except:
+        except AttributeError:
+            pass
+        except Exception as e:
+            print("directors_score: {err}".format(err=e))
             pass
 
         try:
@@ -255,9 +272,10 @@ def analysis_show(section):
                     countries_score[country] = calculate_range_score(index, 3, in_range_diff=True, base_score=2, out_range_score=1) * show_multiplier
                 else:
                     countries_score[country] += calculate_range_score(index, 3, in_range_diff=True, base_score=2, out_range_score=1) * show_multiplier
-
-        except:
+        except AttributeError:
             pass
+        except Exception as e:
+            print("countries_score: {err}".format(err=e))
 
         try:
             for index, role in enumerate(show.roles):
@@ -265,22 +283,31 @@ def analysis_show(section):
                     roles_score[role] = calculate_range_score(index, CAST_RANGE, in_range_diff=True, base_score=5, out_range_score=1) * show_multiplier
                 else:
                     roles_score[role] += calculate_range_score(index, CAST_RANGE, in_range_diff=True, base_score=5, out_range_score=1) * show_multiplier
-        except:
+        except AttributeError:
             pass
+        except Exception as e:
+            print("roles_score: {err}".format(err=e))
 
 
 
-        for index, genre in enumerate(show.genres):
-            if not genre.tag in genre_score:
-                genre_score[genre.tag] = calculate_range_score(index, GENRE_RANGE, in_range_diff=False, base_score=20, out_range_score=1) * show_multiplier
-            else:
-                genre_score[genre.tag] += calculate_range_score(index, GENRE_RANGE, in_range_diff=False, base_score=20, out_range_score=1) * show_multiplier
+        try:
+            for index, genre in enumerate(show.genres):
+                if not genre.tag in genre_score:
+                    genre_score[genre.tag] = calculate_range_score(index, GENRE_RANGE, in_range_diff=False, base_score=20, out_range_score=1) * show_multiplier
+                else:
+                    genre_score[genre.tag] += calculate_range_score(index, GENRE_RANGE, in_range_diff=False, base_score=20, out_range_score=1) * show_multiplier
+        except AttributeError:
+            pass
+        except Exception as e:
+            print("genre_score: {err}".format(err=e))
 
         try:
             for index, studio in enumerate(show.studio):
                 studio_score[studio] = calculate_range_score(index, 2, in_range_diff=True, base_score=3, out_range_score=1) * show_multiplier
-        except:
+        except AttributeError:
             pass
+        except Exception as e:
+            print("studio_score: {err}".format(err=e))
 
 def filter_show(section):
     shows = section.all()
@@ -297,8 +324,8 @@ def filter_show(section):
         show_score[show] = 0
         try:
             show_score[show] += studio_score.get(show.studio, 0)
-        except:
-            pass
+        except Exception as e:
+            print("show_score-studio_score: {err}".format(err=e))
 
         for cast in [a for a in show.actors if a.tag in cast_score]:
             show_score[show] += cast_score[cast.tag]
@@ -309,26 +336,26 @@ def filter_show(section):
         try:
             for writer in [g for g in show.writers if g in writers_score]:
                 show_score[show] += writers_score[writer]
-        except:
-            pass
+        except Exception as e:
+            print("show_score-writers_score: {err}".format(err=e))
 
         try:
             for director in [g for g in show.directors if g in directors_score]:
                 show_score[show] += directors_score[director]
-        except:
-            pass
+        except Exception as e:
+            print("show_score-directors_score: {err}".format(err=e))
 
         try:
             for country in [g for g in show.countries if g in countries_score]:
                 show_score[show] += countries_score[country]
-        except:
-            pass
+        except Exception as e:
+            print("show_score-countries_score: {err}".format(err=e))
 
         try:
             for role in [a for a in show.roles if a in roles_score]:
                 show_score[show] += roles_score[role]
-        except:
-            pass
+        except Exception as e:
+            print("show_score-roles_score: {err}".format(err=e))
 
 
         if hasattr(show, 'contentRating'):
@@ -339,8 +366,8 @@ def filter_show(section):
                 iAudiance = 18
                 try:
                     iAudiance = int(audiance)
-                except:
-                    pass
+                except Exception as e:
+                    print("iAudiance: {err}".format(err=e))
                 if iAudiance < 18:
                     show_score[show] += audiance_score[audiance]
 
@@ -350,8 +377,8 @@ def filter_show(section):
                 for a in show.collections:
                     if str(a).find(collection) != -1:
                         show_score[show] += collections_score.get(collection, 0)
-        except:
-            pass
+        except Exception as e:
+            print("collections_score: {err}".format(err=e))
 
         show_score[show] *= show_multiplier
     recommend = sorted(show_score.items(), key=operator.itemgetter(1), reverse=True)[:PLAYLIST_SIZE]
