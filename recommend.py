@@ -167,14 +167,15 @@ def main():
             media = []
             for s in shows:
                 try:
-                    media.append(get_first_episode(s))
+                    item = get_first_episode(s)
+                    media.append(item)
                 except Exception as e:
                     print("get_first_episode: {err}".format(err=e))
                     pass
 
             if len(media) > 0:
                 try:
-                    playlist = plex.createPlaylist(playlist_title, media)
+                    playlist = plex.createPlaylist(title=playlist_title, items=media)
                     playlist.edit(playlist_title, time.strftime("%A %d %b %Y %H:%M:%S"))
                 except Exception as e:
                     print("createPlaylist: {err}".format(err=e))
@@ -197,7 +198,6 @@ def analysis(plex):
         elif section.title in EXCLUDE_SECTIONS:
             continue
         else :
-            #print (section.title)
             analysis_show(section)
 
     for section in plex.library.sections():
@@ -206,7 +206,6 @@ def analysis(plex):
         elif section.title in EXCLUDE_SECTIONS:
             continue
         else :
-            #print (section.title)
             result[section.title] = filter_show(section)
     return result
 
@@ -350,24 +349,32 @@ def filter_show(section):
         try:
             for writer in [g for g in show.writers if g in writers_score]:
                 show_score[show] += writers_score[writer]
+        except AttributeError:
+            pass
         except Exception as e:
             print("show_score-writers_score: {err}".format(err=e))
 
         try:
             for director in [g for g in show.directors if g in directors_score]:
                 show_score[show] += directors_score[director]
+        except AttributeError:
+            pass
         except Exception as e:
             print("show_score-directors_score: {err}".format(err=e))
 
         try:
             for country in [g for g in show.countries if g in countries_score]:
                 show_score[show] += countries_score[country]
+        except AttributeError:
+            pass
         except Exception as e:
             print("show_score-countries_score: {err}".format(err=e))
 
         try:
             for role in [a for a in show.roles if a in roles_score]:
                 show_score[show] += roles_score[role]
+        except AttributeError:
+            pass
         except Exception as e:
             print("show_score-roles_score: {err}".format(err=e))
 
@@ -391,6 +398,8 @@ def filter_show(section):
                 for a in show.collections:
                     if str(a).find(collection) != -1:
                         show_score[show] += collections_score.get(collection, 0)
+        except AttributeError:
+            pass
         except Exception as e:
             print("collections_score: {err}".format(err=e))
 
