@@ -105,17 +105,13 @@ def fetch_plex_api(path="", method="GET", plextv=False, **kwargs):
 
     try:
         if method.upper() == "GET":
-            r = requests.get(url + path, headers=headers,
-                             params=params, verify=False)
+            r = requests.get(url + path, headers=headers, params=params, verify=False)
         elif method.upper() == "POST":
-            r = requests.post(url + path, headers=headers,
-                              params=params, verify=False)
+            r = requests.post(url + path, headers=headers, params=params, verify=False)
         elif method.upper() == "PUT":
-            r = requests.put(url + path, headers=headers,
-                             params=params, verify=False)
+            r = requests.put(url + path, headers=headers, params=params, verify=False)
         elif method.upper() == "DELETE":
-            r = requests.delete(url + path, headers=headers,
-                                params=params, verify=False)
+            r = requests.delete(url + path, headers=headers, params=params, verify=False)
         else:
             print("Invalid request method provided: {method}".format(method=method))
             return
