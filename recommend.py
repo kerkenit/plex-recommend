@@ -148,7 +148,6 @@ def main():
     users_plex = [plex_server]
     plex_users = get_user_tokens(plex_server.machineIdentifier)
     users_plex.extend([PlexServer(PLEX_URL, u) for n, u in plex_users.items()])
-
     for plex in users_plex:
         result = analysis(plex)
         for playlist in plex.playlists():
