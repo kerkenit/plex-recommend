@@ -1,7 +1,7 @@
 certifi<=2017.11.5
 chardet<=3.0.4
 idna<=2.6
-PlexAPI<=3.0.4
+PlexAPI<=4.13.4
 requests<=2.20
 six<=1.11.0
 tqdm<=4.19.4
